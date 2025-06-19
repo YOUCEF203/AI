@@ -157,6 +157,32 @@
         audio::-webkit-media-controls-panel { background-color: var(--primary-light); }
         body.dark-mode audio::-webkit-media-controls-panel { background-color: hsl(var(--primary-hue), 20%, 25%); }
 
+        .website-code-wrapper { position: relative; }
+        .website-code-wrapper pre {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow: auto;
+        }
+        body.dark-mode .website-code-wrapper pre { background-color: #000; }
+        .copy-code-btn {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem; /* Adjusted for LTR/RTL in JS */
+            background: var(--surface-dark);
+            color: var(--text-light);
+            border: 1px solid var(--border-dark);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+
         .input-area { padding: 1rem; border-top: 1px solid var(--border-light); background: var(--surface-light); }
         body.dark-mode .input-area { border-top-color: var(--border-dark); background: var(--surface-dark); }
         .input-wrapper { display: flex; align-items: center; gap: 0.75rem; }
@@ -278,6 +304,7 @@
                     <div class="dropdown-menu">
                         <button class="dropdown-item" data-service="gemini">Gemini</button>
                         <button class="dropdown-item" data-service="image" data-translate-key="imageService">صناعة الصور</button>
+                        <button class="dropdown-item" data-service="website" data-translate-key="websiteService">إنشاء موقع</button>
                         <button class="dropdown-item" data-service="voice" data-translate-key="voiceService">تحويل النص لصوت</button>
                     </div>
                 </div>
@@ -375,8 +402,8 @@
 
         // --- Localization Strings ---
         const uiStrings = {
-            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
-            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
+            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", websiteService: "إنشاء موقع", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", analyzingRequest: "جاري تحليل طلبك...", buildingWebsite: "جاري بناء الموقع...", copyCode: "نسخ الكود", codeCopied: "تم النسخ!", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderWebsite: "صف الموقع الذي تريده...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
+            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", websiteService: "Website Builder", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", analyzingRequest: "Analyzing your request...", buildingWebsite: "Building your website...", copyCode: "Copy Code", codeCopied: "Copied!", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderWebsite: "Describe the website you want...", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
         };
         
         // --- Initialization ---
@@ -441,7 +468,7 @@
             };
             currentSettings = { ...defaultSettings, ...saved };
             
-            if (!['gemini', 'image', 'voice'].includes(currentSettings.activeService)) {
+            if (!['gemini', 'image', 'website', 'voice'].includes(currentSettings.activeService)) {
                 currentSettings.activeService = 'gemini';
             }
             applySettings();
@@ -500,7 +527,8 @@
             const lang = currentSettings.language;
             let placeholderKey = 'placeholderText';
             if (currentSettings.activeService === 'image') placeholderKey = 'placeholderImage';
-            if (currentSettings.activeService === 'voice') placeholderKey = 'placeholderVoice';
+            else if (currentSettings.activeService === 'website') placeholderKey = 'placeholderWebsite';
+            else if (currentSettings.activeService === 'voice') placeholderKey = 'placeholderVoice';
 
             const strings = uiStrings[lang] || uiStrings.en;
             const html = `
@@ -528,6 +556,8 @@
                     await handleChatService(userMessage);
                 } else if (service === 'image') {
                     await handleImageService(userMessage);
+                } else if (service === 'website') {
+                    await handleWebsiteService(userMessage);
                 } else if (service === 'voice') {
                     handleVoiceService(userMessage);
                 }
@@ -541,10 +571,8 @@
         };
 
         const handleChatService = async (prompt) => {
-             const strings = uiStrings[currentSettings.language] || uiStrings.en;
-            if (!currentSettings.geminiApiKey) {
-                throw new Error(strings.apiKeyMissing);
-            }
+            const strings = uiStrings[currentSettings.language] || uiStrings.en;
+            if (!currentSettings.geminiApiKey) throw new Error(strings.apiKeyMissing);
             
             messageHistory.push({ role: 'user', parts: [{ text: prompt }] });
             const typingIndicator = addMessage('typing');
@@ -564,9 +592,7 @@
         
         const handleImageService = async (userPrompt) => {
             const strings = uiStrings[currentSettings.language] || uiStrings.en;
-            if (!currentSettings.geminiApiKey) {
-                throw new Error(strings.apiKeyMissing);
-            }
+            if (!currentSettings.geminiApiKey) throw new Error(strings.apiKeyMissing);
             
             const statusIndicator = addMessage('typing', strings.generatingKeywords);
 
@@ -584,6 +610,28 @@
 
             } catch (error) {
                 console.error('Error in image generation pipeline:', error);
+                statusIndicator.remove();
+                throw new Error(`${strings.errorMsg} ${error.message}`);
+            }
+        };
+        
+        const handleWebsiteService = async (userPrompt) => {
+            const strings = uiStrings[currentSettings.language] || uiStrings.en;
+            if (!currentSettings.geminiApiKey) throw new Error(strings.apiKeyMissing);
+
+            const statusIndicator = addMessage('typing', strings.analyzingRequest);
+
+            try {
+                const websiteGenerationPrompt = `You are an expert web developer specializing in creating beautiful, modern, and responsive single-page websites using HTML and Tailwind CSS. A user will provide a description of the website they want. Your task is to generate a complete, single HTML file that includes the Tailwind CSS CDN link and all necessary HTML structure, content, and inline CSS classes. The design should be clean, professional, and mobile-first. Do not include any explanation, just the raw HTML code starting with <!DOCTYPE html>. User's request: "${userPrompt}"`;
+
+                const websiteHistory = [{ role: 'user', parts: [{ text: websiteGenerationPrompt }] }];
+                statusIndicator.querySelector('.message-content').textContent = strings.buildingWebsite;
+                const websiteHtml = await sendToGemini(websiteHistory);
+                
+                statusIndicator.remove();
+                addMessage('website', websiteHtml);
+            } catch (error) {
+                console.error('Error in website generation pipeline:', error);
                 statusIndicator.remove();
                 throw new Error(`${strings.errorMsg} ${error.message}`);
             }
@@ -640,6 +688,37 @@
                             <i class="ph ph-download-simple"></i>
                         </a>
                     </div>`;
+            } else if (sender === 'website') {
+                const escapedCode = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const uniqueId = `code-${Date.now()}`;
+                contentHTML = `
+                    <div class="website-code-wrapper">
+                         <button class="copy-code-btn" data-target="${uniqueId}">${strings.copyCode}</button>
+                         <pre><code id="${uniqueId}">${escapedCode}</code></pre>
+                    </div>`;
+
+                // Add event listener for the copy button
+                setTimeout(() => {
+                    const copyBtn = messageEl.querySelector('.copy-code-btn');
+                    if(document.documentElement.dir === 'rtl') {
+                        copyBtn.style.left = 'auto';
+                        copyBtn.style.right = '0.5rem';
+                    } else {
+                        copyBtn.style.left = '0.5rem';
+                        copyBtn.style.right = 'auto';
+                    }
+                    copyBtn.addEventListener('click', () => {
+                        const codeToCopy = content;
+                        const textarea = document.createElement('textarea');
+                        textarea.value = codeToCopy;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        copyBtn.textContent = strings.codeCopied;
+                        setTimeout(() => { copyBtn.textContent = strings.copyCode; }, 2000);
+                    });
+                }, 0);
             } else {
                  contentHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
             }
