@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
     <style>
         :root {
             --primary-hue: 220;
@@ -77,9 +79,7 @@
             z-index: 1001;
         }
         body.dark-mode .sidebar { background-color: var(--surface-dark); border-left-color: var(--border-dark); }
-        .app-layout.sidebar-collapsed .sidebar { width: 0; padding: 1.5rem 0; opacity: 0; transform: translateX(20px);}
-        html[dir="ltr"] .app-layout.sidebar-collapsed .sidebar { transform: translateX(-20px); }
-
+        
         .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-light); transition: var(--transition-slow); }
         body.dark-mode .main-content { background-color: var(--bg-dark); }
         .sidebar-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
@@ -145,30 +145,32 @@
             display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border-light);
         }
         body.dark-mode .chat-header { border-bottom-color: var(--border-dark); }
+        .header-center { display: flex; gap: 1rem; align-items: center; }
         
         .service-dropdown { position: relative; }
-        .current-service-btn {
+        .current-service-btn, .current-model-btn {
             background: var(--bg-light); border: 1px solid var(--border-light); font-size: 1.1rem; font-weight: 600;
             display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
             padding: 0.5rem 1rem; border-radius: var(--border-radius-sm); transition: var(--transition-fast);
         }
-        body.dark-mode .current-service-btn { background: var(--surface-dark); border-color: var(--border-dark); }
+        body.dark-mode .current-service-btn, body.dark-mode .current-model-btn { background: var(--surface-dark); border-color: var(--border-dark); }
         .dropdown-menu {
             position: absolute; top: 120%; left: 50%; transform: translateX(-50%);
             background-color: var(--surface-light); border: 1px solid var(--border-light);
             border-radius: var(--border-radius-md); box-shadow: var(--shadow-lg);
             min-width: 220px; z-index: 10;
             opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(10px);
-            transition: var(--transition-fast);
+            transition: var(--transition-fast); max-height: 300px; overflow-y: auto;
         }
         body.dark-mode .dropdown-menu { background-color: var(--surface-dark); border-color: var(--border-dark); }
         .dropdown-menu.open { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
         .dropdown-item {
-            display: flex; width: 100%; align-items: center; gap: 0.75rem;
+            display: flex; flex-direction: column; width: 100%; align-items: flex-start; gap: 0.1rem;
             padding: 0.75rem 1rem; background: none; border: none;
             font-size: 1rem; text-align: right; cursor: pointer;
         }
-        html[dir="ltr"] .dropdown-item { text-align: left; }
+        .dropdown-item small { opacity: 0.7; font-size: 0.8rem; }
+        html[dir="ltr"] .dropdown-item { text-align: left; align-items: flex-start; }
         .dropdown-item:hover { background-color: var(--primary-light); }
         body.dark-mode .dropdown-item:hover { background-color: hsl(var(--primary-hue), 20%, 25%); }
 
@@ -194,6 +196,9 @@
         .message.typing .message-content { color: var(--text-dark-secondary); font-style: italic; width: auto; background: none; box-shadow: none; border: none;}
         body.dark-mode .message.typing .message-content { color: var(--text-light-secondary); }
 
+        .audio-player-wrapper { display: flex; align-items: center; gap: 0.5rem; }
+        audio { flex-grow: 1; height: 40px; }
+        
         .website-wrapper { border-radius: var(--border-radius-lg); overflow: hidden; border: 1px solid var(--border-light); box-shadow: var(--shadow-md); }
         body.dark-mode .website-wrapper { border-color: var(--border-dark); }
         .website-tabs { display: flex; background-color: var(--bg-light); padding: 0.5rem; gap: 0.5rem; border-bottom: 1px solid var(--border-light); }
@@ -330,16 +335,19 @@
                 <div class="header-left">
                     <button class="icon-btn menu-btn" id="menu-btn"><i class="ph ph-list"></i></button>
                 </div>
-                <div class="service-dropdown" id="service-dropdown">
-                    <button class="current-service-btn">
-                        <span id="current-service-name">Gemini</span>
-                        <i class="ph ph-caret-down"></i>
-                    </button>
-                    <div class="dropdown-menu">
-                        <button class="dropdown-item" data-service="gemini">Gemini</button>
-                        <button class="dropdown-item" data-service="image" data-translate-key="imageService">صناعة الصور</button>
-                        <button class="dropdown-item" data-service="website" data-translate-key="websiteService">إنشاء موقع</button>
-                        <button class="dropdown-item" data-service="voice" data-translate-key="voiceService">تحويل النص لصوت</button>
+                <div class="header-center">
+                    <div class="service-dropdown" id="service-dropdown">
+                        <button class="current-service-btn">
+                            <span id="current-service-name">Gemini</span>
+                            <i class="ph ph-caret-down"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" data-service="gemini">Gemini</button>
+                            <button class="dropdown-item" data-service="chatgpt" data-translate-key="chatGPTService">ChatGPT</button>
+                            <button class="dropdown-item" data-service="image" data-translate-key="imageService">صناعة الصور</button>
+                            <button class="dropdown-item" data-service="website" data-translate-key="websiteService">إنشاء موقع</button>
+                            <button class="dropdown-item" data-service="voice_response" data-translate-key="voiceResponseService">الرد الصوتي</button>
+                        </div>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -365,36 +373,30 @@
                 <button class="icon-btn modal-close"><i class="ph ph-x"></i></button>
             </div>
             <div class="modal-body">
-                 <div class="settings-section">
-                    <h4 class="settings-section-title" data-translate-key="generalSettings">إعدادات عامة</h4>
+                <div class="settings-section">
+                     <h4 class="settings-section-title" data-translate-key="generalSettings">إعدادات عامة</h4>
                     <div class="setting-item">
-                        <label for="language-select"><i class="ph ph-translate"></i><span data-translate-key="interfaceLanguage">لغة الواجهة</span></label>
+                        <label for="language-select">لغة الواجهة</label>
                         <select id="language-select">
                             <option value="ar">العربية</option><option value="en">English</option>
                         </select>
                     </div>
                     <div class="setting-item">
-                        <label><i class="ph ph-palette"></i><span data-translate-key="primaryColor">اللون الأساسي</span></label>
-                        <div class="color-palette">
-                             <span class="color-swatch" data-color="#6366f1" style="background-color: #6366f1;"></span>
-                             <span class="color-swatch" data-color="#ec4899" style="background-color: #ec4899;"></span>
-                             <span class="color-swatch" data-color="#22c55e" style="background-color: #22c55e;"></span>
-                             <span class="color-swatch" data-color="#f97316" style="background-color: #f97316;"></span>
-                             <input type="color" id="color-picker">
-                        </div>
+                        <label for="color-picker">اللون الأساسي</label>
+                        <input type="color" id="color-picker">
                     </div>
-                     <div class="setting-item dark-mode-toggle">
-                        <label for="dark-mode-toggle"><i class="ph ph-moon"></i><span data-translate-key="darkMode">المظهر الداكن</span></label>
+                     <div class="setting-item">
+                        <label for="dark-mode-toggle">المظهر الداكن</label>
                         <label class="switch">
                           <input type="checkbox" id="dark-mode-toggle">
                           <span class="slider"></span>
                         </label>
                     </div>
                 </div>
-                <div class="settings-section" id="audio-settings-section">
+                 <div class="settings-section" id="audio-settings-section">
                     <h4 class="settings-section-title" data-translate-key="audioSettings">إعدادات الصوت</h4>
                     <div class="setting-item">
-                        <label for="audio-voice-select"><i class="ph ph-speaker-high"></i><span data-translate-key="voice">الصوت</span></label>
+                        <label for="audio-voice-select">الصوت</label>
                         <select id="audio-voice-select">
                             <option value="alloy">Alloy</option><option value="echo">Echo</option>
                             <option value="fable">Fable</option><option value="onyx">Onyx</option>
@@ -436,20 +438,18 @@
         const serviceDropdown = getEl('service-dropdown');
         const currentServiceSpan = getEl('current-service-name');
         const dropdownMenu = queryEl('.dropdown-menu');
-
-        // Settings Elements
         const languageSelect = getEl('language-select');
         const colorPicker = getEl('color-picker');
-        const colorSwatches = document.querySelectorAll('.color-swatch');
         const darkModeToggle = getEl('dark-mode-toggle');
         const audioVoiceSelect = getEl('audio-voice-select');
 
         let appData = {};
         const GEMINI_API_KEY = 'AIzaSyA_X5m2T_oDPsc-D2JiSKKJ-jJKvvJLmH8';
+        const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
 
         const uiStrings = {
-             ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", primaryColor: "اللون الأساسي", saveChanges: "حفظ وإغلاق", close: "إغلاق", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", imageService: "صناعة الصور", websiteService: "إنشاء موقع", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", analyzingRequest: "جاري تحليل طلبك...", buildingWebsite: "جاري بناء الموقع...", enhancingIdea: "جاري توسيع الفكرة...", preview: "معاينة", code: "الكود", copyCode: "نسخ الكود", codeCopied: "تم النسخ!", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderWebsite: "صف فكرة موقعك...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", generalSettings: "إعدادات عامة", darkMode: "المظهر الداكن" },
-             en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", primaryColor: "Primary Color", saveChanges: "Save & Close", close: "Close", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", imageService: "Image Generation", websiteService: "Website Builder", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", analyzingRequest: "Analyzing your request...", buildingWebsite: "Building your website...", enhancingIdea: "Enhancing the idea...", preview: "Preview", code: "Code", copyCode: "Copy Code", codeCopied: "Copied!", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderWebsite: "Describe your website idea...", placeholderVoice: "Type text to convert to speech...", generalSettings: "General Settings", darkMode: "المظهر الداكن" },
+             ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", primaryColor: "اللون الأساسي", saveChanges: "حفظ وإغلاق", close: "إغلاق", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", imageService: "صناعة الصور", websiteService: "إنشاء موقع", chatGPTService: "ChatGPT", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", analyzingRequest: "جاري تحليل طلبك...", buildingWebsite: "جاري بناء الموقع...", enhancingIdea: "جاري توسيع الفكرة...", preview: "معاينة", code: "الكود", copyCode: "نسخ الكود", codeCopied: "تم النسخ!", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderWebsite: "صف فكرة موقعك...", generalSettings: "إعدادات عامة", darkMode: "المظهر الداكن", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", voiceResponseService: "الرد الصوتي" },
+             en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", primaryColor: "Primary Color", saveChanges: "Save & Close", close: "Close", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", imageService: "Image Generation", websiteService: "Website Builder", chatGPTService: "ChatGPT", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", analyzingRequest: "Analyzing your request...", buildingWebsite: "Building your website...", enhancingIdea: "Enhancing the idea...", preview: "Preview", code: "Code", copyCode: "Copy Code", codeCopied: "Copied!", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderWebsite: "Describe your website idea...", generalSettings: "General Settings", darkMode: "Dark Mode", audioSettings: "Audio Settings", voice: "Voice", download: "Download", voiceResponseService: "Voice Response" },
         };
         
         const init = () => {
@@ -463,21 +463,34 @@
             newChatBtn.addEventListener('click', startNewChat);
             settingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
             closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('active'));
-            saveSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('active'));
+            saveSettingsBtn.addEventListener('click', saveAndApplyAllSettings);
             menuBtn.addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('active'); });
             overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('active'); });
             serviceDropdown.addEventListener('click', (e) => { if (e.target.closest('.current-service-btn')) { dropdownMenu.classList.toggle('open'); } });
-            dropdownMenu.addEventListener('click', (e) => { if (e.target.classList.contains('dropdown-item') && !e.target.disabled) { setActiveService(e.target.dataset.service); dropdownMenu.classList.remove('open'); } });
-            document.addEventListener('click', (e) => { if (!serviceDropdown.contains(e.target)) { dropdownMenu.classList.remove('open'); } });
+            dropdownMenu.addEventListener('click', (e) => { 
+                const button = e.target.closest('.dropdown-item');
+                if (button) { setActiveService(button.dataset.service); dropdownMenu.classList.remove('open'); }
+            });
+            document.addEventListener('click', (e) => { 
+                if (!serviceDropdown.contains(e.target)) { dropdownMenu.classList.remove('open'); }
+            });
 
             // Settings Listeners
             darkModeToggle.addEventListener('change', (e) => { appData.settings.darkMode = e.target.checked; saveAndApplyData(); });
             languageSelect.addEventListener('change', (e) => { appData.settings.language = e.target.value; saveAndApplyData(); });
             colorPicker.addEventListener('input', (e) => { updatePrimaryColor(e.target.value); });
-            colorSwatches.forEach(swatch => swatch.addEventListener('click', () => updatePrimaryColor(swatch.dataset.color)));
             audioVoiceSelect.addEventListener('change', (e) => { appData.settings.audioVoice = e.target.value; saveAndApplyData(); });
         };
         
+        const saveAndApplyAllSettings = () => {
+            appData.settings.language = languageSelect.value;
+            appData.settings.primaryColor = colorPicker.value;
+            appData.settings.darkMode = darkModeToggle.checked;
+            appData.settings.audioVoice = audioVoiceSelect.value;
+            saveAndApplyData();
+            settingsModal.classList.remove('active');
+        };
+
         const updatePrimaryColor = (color) => {
             appData.settings.primaryColor = color;
             colorPicker.value = color;
@@ -498,6 +511,9 @@
                     activeChatId: initialChatId,
                     chats: [{ id: initialChatId, title: uiStrings[defaultSettings.language].newChat, history: [] }]
                 };
+            }
+            if (!['gemini', 'image', 'website', 'chatgpt', 'voice_response'].includes(appData.settings.activeService)) {
+                appData.settings.activeService = 'gemini';
             }
             applySettings();
             renderChatHistory();
@@ -520,23 +536,12 @@
             languageSelect.value = settings.language;
             colorPicker.value = settings.primaryColor;
             darkModeToggle.checked = settings.darkMode;
-            updateColorSwatches(settings.primaryColor);
             audioVoiceSelect.value = settings.audioVoice;
             const serviceEl = queryEl(`.dropdown-item[data-service="${settings.activeService}"]`);
             if (serviceEl) { currentServiceSpan.textContent = serviceEl.textContent; }
             applyLanguage(settings.language);
         };
         
-        const updateColorSwatches = (activeColor) => {
-            colorSwatches.forEach(swatch => {
-                if(swatch.dataset.color.toLowerCase() === activeColor.toLowerCase()){
-                    swatch.classList.add('active');
-                } else {
-                    swatch.classList.remove('active');
-                }
-            });
-        };
-
         const applyLanguage = (lang) => {
             document.documentElement.lang = lang;
             document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
@@ -553,11 +558,11 @@
 
         const updateInputArea = () => {
             const lang = appData.settings.language;
-            let placeholderKey = 'placeholderText';
-            if (appData.settings.activeService === 'image') placeholderKey = 'placeholderImage';
-            else if (appData.settings.activeService === 'website') placeholderKey = 'placeholderWebsite';
-            else if (appData.settings.activeService === 'voice') placeholderKey = 'placeholderVoice';
+            const service = appData.settings.activeService;
             const strings = uiStrings[lang] || uiStrings.en;
+            let placeholderKey = 'placeholderText';
+            if (service === 'image') placeholderKey = 'placeholderImage';
+            else if (service === 'website') placeholderKey = 'placeholderWebsite';
             const html = `<textarea class="chat-input" placeholder="${strings[placeholderKey]}" rows="1"></textarea><button class="send-btn"><i class="ph ph-paper-plane-tilt"></i></button>`;
             inputWrapper.innerHTML = html;
         };
@@ -577,7 +582,8 @@
                     case 'gemini': await handleChatService(); break;
                     case 'image': await handleImageService(userMessage); break;
                     case 'website': await handleWebsiteService(userMessage); break;
-                    case 'voice': handleVoiceService(userMessage); break;
+                    case 'chatgpt': await handleChatGPTService(userMessage); break;
+                    case 'voice_response': await handleVoiceResponseService(); break;
                 }
                  if (isFirstMessage) { generateChatTitle(appData.activeChatId, userMessage); }
             } catch (error) {
@@ -599,6 +605,25 @@
             } catch (error) {
                 const strings = uiStrings[appData.settings.language] || uiStrings.en;
                 typingIndicator.remove();
+                getActiveChat().history.pop();
+                addMessage('error', `${strings.errorMsg} ${error.message}`);
+                saveAndApplyData();
+            }
+        };
+
+        const handleChatGPTService = async (prompt) => {
+            const typingIndicator = addMessage('typing');
+            try {
+                const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=gpt-j-6B`;
+                const response = await fetch(`${PROXY_URL}${url}`);
+                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                const aiMessage = await response.text();
+                addMessageToHistory('model', aiMessage);
+                typingIndicator.remove();
+                renderMessages(getActiveChat().history);
+            } catch (error) {
+                 const strings = uiStrings[appData.settings.language] || uiStrings.en;
+                 typingIndicator.remove();
                 getActiveChat().history.pop();
                 addMessage('error', `${strings.errorMsg} ${error.message}`);
                 saveAndApplyData();
@@ -634,8 +659,14 @@
                 }
                 statusIndicator.querySelector('.message-content').textContent = strings.buildingWebsite;
                 const websiteGenerationPrompt = `You are an expert web developer specializing in creating beautiful, modern, and responsive single-page websites using HTML and Tailwind CSS. The user wants a website based on this description: "${finalPrompt}". Your task is to generate a complete, single HTML file that includes the Tailwind CSS CDN link and all necessary HTML structure, content, and inline CSS classes. The design should be clean, professional, and mobile-first. Use high-quality placeholder images from https://placehold.co where appropriate. Do not include any explanation, just the raw HTML code starting with <!DOCTYPE html>.`;
-                const websiteHtml = await sendToGemini([{ role: 'user', parts: [{ text: websiteGenerationPrompt }] }]);
-                addMessageToHistory('model', websiteHtml, 'website');
+                const initialHtml = await sendToGemini([{ role: 'user', parts: [{ text: websiteGenerationPrompt }] }]);
+                
+                statusIndicator.querySelector('.message-content').textContent = "جاري وضع اللمسات النهائية...";
+                const refinementPrompt = `You are an expert web developer. The following is a draft of an HTML page created by another AI. Review it, improve the design, add more creative details and sections, fix any potential issues, and provide the final, complete, and refined HTML code. Do not add any explanation, just the raw HTML code. Here is the draft:\n\n${initialHtml}`;
+                
+                const finalHtml = await sendToGemini([{role: 'user', parts: [{text: refinementPrompt}]}]);
+
+                addMessageToHistory('model', finalHtml, 'website');
                 statusIndicator.remove();
                 renderMessages(getActiveChat().history);
             } catch (error) {
@@ -645,14 +676,26 @@
             }
         };
 
-        const handleVoiceService = (text) => {
-            const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?model=openai-audio&voice=${appData.settings.audioVoice}`;
-            addMessageToHistory('model', url, 'audio');
-            renderMessages(getActiveChat().history);
+        const handleVoiceResponseService = async () => {
+            const typingIndicator = addMessage('typing');
+            try {
+                const history = getActiveChat().history;
+                const aiMessage = await sendToGemini(history);
+                addMessageToHistory('model', aiMessage, 'audio'); // Store as audio type
+                typingIndicator.remove();
+                renderMessages(getActiveChat().history);
+            } catch (error) {
+                const strings = uiStrings[appData.settings.language] || uiStrings.en;
+                typingIndicator.remove();
+                getActiveChat().history.pop();
+                addMessage('error', `${strings.errorMsg} ${error.message}`);
+                saveAndApplyData();
+            }
         };
 
         const sendToGemini = async (history) => {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+            const apiUrl = `${PROXY_URL}${geminiUrl}`;
             const strings = uiStrings[appData.settings.language] || uiStrings.en;
             const payload = { contents: history.map(({type, ...rest}) => rest) };
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -680,24 +723,29 @@
             let contentHTML = '';
             const strings = uiStrings[appData.settings.language] || uiStrings.en;
             
-            switch (type) {
-                case 'typing': contentHTML = content || strings.typing; break;
-                case 'image': contentHTML = `<img src="${content}" alt="Generated image" onerror="this.parentElement.innerHTML = 'Image failed to load.'">`; break;
-                case 'audio': contentHTML = `<div class="audio-player-wrapper"><audio controls autoplay src="${content}"></audio><a href="${content}" download="ai-voice.mp3" class="icon-btn" title="${strings.download}"><i class="ph ph-download-simple"></i></a></div>`; break;
-                case 'website':
-                    const uniqueId = `site-${Date.now()}`;
-                    contentHTML = `<div class="website-wrapper" id="${uniqueId}"><div class="website-tabs"><div class="website-tab active" data-tab="preview">${strings.preview}</div><div class="website-tab" data-tab="code">${strings.code}</div></div><div class="website-content website-preview active" data-content="preview"><iframe srcdoc="${content.replace(/"/g, '&quot;')}" sandbox="allow-scripts allow-same-origin"></iframe></div><div class="website-content website-code" data-content="code"><button class="copy-code-btn">${strings.copyCode}</button><pre><code>${content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre></div></div>`;
-                    setTimeout(() => {
-                        const wrapper = getEl(uniqueId);
-                        wrapper.querySelectorAll('.website-tab').forEach(tab => tab.addEventListener('click', () => {
-                            wrapper.querySelectorAll('.website-tab, .website-content').forEach(el => el.classList.remove('active'));
-                            tab.classList.add('active');
-                            wrapper.querySelector(`[data-content="${tab.dataset.tab}"]`).classList.add('active');
-                        }));
-                    }, 0);
-                    break;
-                default: contentHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            if (type === 'audio') {
+                const audioUrl = `https://text.pollinations.ai/${encodeURIComponent(content)}?model=openai-audio&voice=${appData.settings.audioVoice}`;
+                contentHTML = `<div class="audio-player-wrapper">
+                                   <audio controls autoplay src="${audioUrl}"></audio>
+                                   <a href="${audioUrl}" download="ai-voice.mp3" class="icon-btn" title="${strings.download}"><i class="ph ph-download-simple"></i></a>
+                               </div>`;
+            } else if (type === 'website') {
+                 const uniqueId = `site-${Date.now()}`;
+                 contentHTML = `<div class="website-wrapper" id="${uniqueId}"><div class="website-tabs"><div class="website-tab active" data-tab="preview">${strings.preview}</div><div class="website-tab" data-tab="code">${strings.code}</div></div><div class="website-content website-preview active" data-content="preview"><iframe srcdoc="${content.replace(/"/g, '&quot;')}" sandbox="allow-scripts allow-same-origin"></iframe></div><div class="website-content website-code" data-content="code"><button class="copy-code-btn">${strings.copyCode}</button><pre><code>${content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre></div></div>`;
+                 setTimeout(() => {
+                     const wrapper = getEl(uniqueId);
+                     wrapper.querySelectorAll('.website-tab').forEach(tab => tab.addEventListener('click', () => {
+                         wrapper.querySelectorAll('.website-tab, .website-content').forEach(el => el.classList.remove('active'));
+                         tab.classList.add('active');
+                         wrapper.querySelector(`[data-content="${tab.dataset.tab}"]`).classList.add('active');
+                     }));
+                 }, 0);
             }
+            else {
+                 contentHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            }
+
+            if (role === 'typing') contentHTML = content || strings.typing;
             
             const avatarIcon = messageRole === 'user' ? 'ph-user' : 'ph-brain';
             messageEl.innerHTML = `<div class="avatar user-avatar"><i class="ph ${avatarIcon}"></i></div><div class="message-content">${contentHTML}</div>`;
