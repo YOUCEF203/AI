@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -211,14 +211,16 @@
         .modal-title { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; }
         .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
         .settings-section-title { font-weight: 600; margin-bottom: 1rem; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;}
         .setting-item > label { font-size: 1rem; }
-        select, input[type="color"] {
+        select, input[type="color"], input[type="password"], input[type="text"] {
             padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border-light);
-            background-color: var(--surface-light); min-width: 150px;
+            background-color: var(--surface-light); min-width: 150px; flex-grow: 1;
         }
-        input[type="color"] { height: 40px; padding: 0.25rem; }
-        body.dark-mode select, body.dark-mode input[type="color"] { background-color: var(--dark-gray); border-color: var(--border-dark); color: var(--text-light); }
+        input[type="color"] { height: 40px; padding: 0.25rem; min-width: 50px;}
+        body.dark-mode select, body.dark-mode input[type="color"], body.dark-mode input[type="password"], body.dark-mode input[type="text"] { 
+            background-color: #374151; border-color: var(--border-dark); color: var(--text-light); 
+        }
         .modal-footer { padding: 1.5rem; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-light); margin-top: auto; }
         body.dark-mode .modal-footer { border-top-color: var(--border-dark); }
         .save-btn {
@@ -303,7 +305,13 @@
                 <button class="icon-btn modal-close"><i class="ph ph-x"></i></button>
             </div>
             <div class="modal-body">
-                <h4 class="settings-section-title" data-translate-key="language">اللغة</h4>
+                <h4 class="settings-section-title" data-translate-key="geminiSettings">إعدادات Gemini</h4>
+                 <div class="setting-item">
+                    <label for="gemini-api-key" data-translate-key="geminiApiKey">مفتاح Gemini API</label>
+                    <input type="password" id="gemini-api-key" placeholder="أدخل مفتاح API هنا">
+                </div>
+
+                <h4 class="settings-section-title" data-translate-key="generalSettings">إعدادات عامة</h4>
                 <div class="setting-item">
                     <label for="language-select" data-translate-key="interfaceLanguage">لغة الواجهة</label>
                     <select id="language-select">
@@ -311,7 +319,6 @@
                         <option value="fr">Français</option><option value="es">Español</option>
                     </select>
                 </div>
-                <h4 class="settings-section-title" data-translate-key="themeColor">لون المظهر</h4>
                 <div class="setting-item">
                     <label for="color-picker" data-translate-key="primaryColor">اللون الأساسي</label>
                     <input type="color" id="color-picker">
@@ -349,6 +356,7 @@
         const sidebarToggleBtn = getEl('sidebar-toggle-btn');
         const settingsModal = getEl('settings-modal');
         const closeModalBtn = queryEl('#settings-modal .modal-close');
+        const geminiApiKeyInput = getEl('gemini-api-key');
         const languageSelect = getEl('language-select');
         const colorPicker = getEl('color-picker');
         const saveSettingsBtn = queryEl('#settings-modal .save-btn');
@@ -367,8 +375,8 @@
 
         // --- Localization Strings ---
         const uiStrings = {
-            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", imageService: "صناعة الصور", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت..." },
-            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", imageService: "Image Generation", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderVoice: "Type text to convert to speech..." },
+            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
+            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
         };
         
         // --- Initialization ---
@@ -412,6 +420,7 @@
         
         // --- Settings Management ---
         const saveAndApplyAllSettings = () => {
+            currentSettings.geminiApiKey = geminiApiKeyInput.value.trim();
             currentSettings.language = languageSelect.value;
             currentSettings.primaryColor = colorPicker.value;
             currentSettings.audioVoice = audioVoiceSelect.value;
@@ -421,14 +430,24 @@
 
         const loadSettings = () => {
             const saved = JSON.parse(localStorage.getItem('aiAssistantSettings'));
-            currentSettings = { darkMode: false, language: 'ar', primaryColor: '#4f46e5', activeService: 'gemini', audioVoice: 'alloy', sidebarCollapsed: false, ...saved };
-            // Ensure activeService is valid, otherwise default to 'gemini'
+            // Set the default API key here
+            const defaultSettings = {
+                darkMode: false,
+                language: 'ar',
+                primaryColor: '#4f46e5',
+                activeService: 'gemini',
+                audioVoice: 'alloy',
+                sidebarCollapsed: false,
+                geminiApiKey: 'AIzaSyA_X5m2T_oDPsc-D2JiSKKJ-jJKvvJLmH8' 
+            };
+            currentSettings = { ...defaultSettings, ...saved };
+            
             if (!['gemini', 'image', 'voice'].includes(currentSettings.activeService)) {
                 currentSettings.activeService = 'gemini';
             }
             applySettings();
             if (chatMessages.children.length === 0) {
-                addMessage('ai', uiStrings[currentSettings.language].welcomeMsg);
+                addMessage('ai', uiStrings[currentSettings.language]?.welcomeMsg || "Welcome!");
             }
         };
 
@@ -447,6 +466,7 @@
             document.documentElement.style.setProperty('--primary-saturation', `${s}%`);
             document.documentElement.style.setProperty('--primary-lightness', `${l}%`);
             
+            geminiApiKeyInput.value = currentSettings.geminiApiKey;
             languageSelect.value = currentSettings.language;
             colorPicker.value = currentSettings.primaryColor;
             audioVoiceSelect.value = currentSettings.audioVoice;
@@ -464,10 +484,11 @@
             document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
             document.querySelectorAll('[data-translate-key]').forEach(el => {
                 const key = el.dataset.translateKey;
-                if (uiStrings[lang] && uiStrings[lang][key]) {
-                    const value = uiStrings[lang][key];
+                const strings = uiStrings[lang] || uiStrings.en;
+                if (strings[key]) {
+                    const value = strings[key];
                     if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
-                         el.placeholder = value;
+                         if(el.placeholder !== undefined) el.placeholder = value;
                     } else {
                          el.textContent = value;
                     }
@@ -482,8 +503,9 @@
             if (currentSettings.activeService === 'image') placeholderKey = 'placeholderImage';
             if (currentSettings.activeService === 'voice') placeholderKey = 'placeholderVoice';
 
+            const strings = uiStrings[lang] || uiStrings.en;
             const html = `
-                <textarea class="chat-input" placeholder="${uiStrings[lang][placeholderKey]}" rows="1"></textarea>
+                <textarea class="chat-input" placeholder="${strings[placeholderKey]}" rows="1"></textarea>
                 <button class="send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
             `;
             inputWrapper.innerHTML = html;
@@ -511,15 +533,20 @@
                     handleVoiceService(userMessage);
                 }
             } catch (error) {
-                 // Errors are handled within each service function
                  console.error("Error during message handling:", error);
+                 addMessage('error', error.message);
             } finally {
-                sendBtn.disabled = false;
-                inputEl.focus();
+                if(sendBtn) sendBtn.disabled = false;
+                if(inputEl) inputEl.focus();
             }
         };
 
         const handleChatService = async (prompt) => {
+             const strings = uiStrings[currentSettings.language] || uiStrings.en;
+            if (!currentSettings.geminiApiKey) {
+                throw new Error(strings.apiKeyMissing);
+            }
+            
             messageHistory.push({ role: 'user', parts: [{ text: prompt }] });
             const typingIndicator = addMessage('typing');
 
@@ -531,8 +558,8 @@
             } catch (error) {
                 console.error(`Error with Gemini:`, error);
                 typingIndicator.remove();
-                addMessage('error', `${uiStrings[currentSettings.language].errorMsg} ${error.message}`);
-                messageHistory.pop(); // Remove user message from history on failure
+                addMessage('error', `${strings.errorMsg} ${error.message}`);
+                messageHistory.pop();
             }
         };
         
@@ -549,9 +576,10 @@
 
         // --- API Call Functions ---
         const sendToGemini = async (history) => {
-            const apiKey = ""; // Canvas provides this automatically.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            
+            const apiKey = currentSettings.geminiApiKey;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+            const strings = uiStrings[currentSettings.language] || uiStrings.en;
+
             const payload = { contents: history };
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -560,10 +588,14 @@
             });
 
             const result = await response.json();
-            if (!response.ok || !result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                const errorMessage = result.error?.message || uiStrings[currentSettings.language].apiError;
+            if (!response.ok) {
+                const errorMessage = result.error?.message || strings.apiError;
                 console.error("Gemini API Error:", result);
                 throw new Error(errorMessage);
+            }
+             if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                console.error("Invalid response structure from Gemini:", result);
+                throw new Error(strings.apiError);
             }
             return result.candidates[0].content.parts[0].text;
         };
@@ -573,9 +605,10 @@
             const messageEl = document.createElement('div');
             messageEl.className = `message message-${sender}`;
             let contentHTML;
+            const strings = uiStrings[currentSettings.language] || uiStrings.en;
             
             if (sender === 'typing') {
-                content = uiStrings[currentSettings.language].typing;
+                content = strings.typing;
             }
 
             if (sender === 'image') {
@@ -584,12 +617,11 @@
                 contentHTML = `
                     <div class="audio-player-wrapper">
                         <audio controls autoplay src="${content}"></audio>
-                        <a href="${content}" download="ai-voice.mp3" class="icon-btn" title="${uiStrings[currentSettings.language].download}">
+                        <a href="${content}" download="ai-voice.mp3" class="icon-btn" title="${strings.download}">
                             <i class="ph ph-download-simple"></i>
                         </a>
                     </div>`;
             } else {
-                 // Sanitize and format text content
                  contentHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
             }
             
@@ -604,19 +636,21 @@
 
         const setActiveService = (service) => {
             currentSettings.activeService = service;
-            startNewChat(true); // Start a new chat silently
+            startNewChat(true);
             applyAndSaveSettings();
         };
 
         const startNewChat = (silent = false) => {
             chatMessages.innerHTML = '';
             messageHistory = [];
-            addMessage('ai', uiStrings[currentSettings.language].newChatWelcome);
+            const strings = uiStrings[currentSettings.language] || uiStrings.en;
+            addMessage('ai', strings.newChatWelcome);
         };
 
         // --- Utility Functions ---
         const hexToHsl = (H) => {
             let r = 0, g = 0, b = 0;
+            if(!H) return [0, 0, 0];
             if (H.length == 4) { r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3];
             } else if (H.length == 7) { r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6]; }
             r /= 255; g /= 255; b /= 255;
