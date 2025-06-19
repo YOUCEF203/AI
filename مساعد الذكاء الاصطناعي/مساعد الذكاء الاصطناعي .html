@@ -1,0 +1,642 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المساعد الذكي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --primary-hue: 220;
+            --primary-saturation: 85%;
+            --primary-lightness: 58%;
+            --primary: hsl(var(--primary-hue), var(--primary-saturation), var(--primary-lightness));
+            --primary-dark: hsl(var(--primary-hue), var(--primary-saturation), 48%);
+            --primary-light: hsl(var(--primary-hue), var(--primary-saturation), 95%);
+            --text-dark: #111827;
+            --text-light: #e5e7eb;
+            --bg-light: #f9fafb;
+            --bg-dark: #111827;
+            --surface-light: #ffffff;
+            --surface-dark: #1f2937;
+            --border-light: #e5e7eb;
+            --border-dark: #374151;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --border-radius: 0.75rem;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Tajawal', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
+        }
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+        .app-layout { position: relative; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background-color: var(--surface-light);
+            border-left: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            transition: width 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.2s ease-in-out;
+            z-index: 1001;
+        }
+        body.dark-mode .sidebar { background-color: var(--surface-dark); border-left-color: var(--border-dark); }
+        .app-layout.sidebar-collapsed .sidebar {
+            width: 0; padding: 1.5rem 0; opacity: 0;
+        }
+
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-light); transition: var(--transition); }
+        body.dark-mode .main-content { background-color: var(--bg-dark); }
+        .sidebar-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+        .logo-icon {
+            width: 44px; height: 44px; background: var(--primary); border-radius: 50%;
+            display: grid; place-items: center; color: white; font-size: 1.75rem; flex-shrink: 0;
+        }
+        .logo-title { font-size: 1.5rem; font-weight: 700; white-space: nowrap; }
+        .new-chat-btn {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.75rem 1rem;
+            font-size: 1rem; font-weight: 600; background: var(--primary); color: white; border: none;
+            border-radius: 0.5rem; cursor: pointer; transition: var(--transition); margin-bottom: 1.5rem; white-space: nowrap;
+        }
+        .new-chat-btn:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: var(--shadow); }
+        .history-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column;}
+        .history-title { font-size: 0.875rem; font-weight: 600; color: #6b7280; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;}
+        body.dark-mode .history-title { color: #9ca3af; }
+        .chat-history, .developers-list { list-style: none; margin-bottom: 1.5rem; }
+        .chat-history-item, .developer-item {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;
+            border-radius: 0.5rem; margin-bottom: 0.5rem; font-size: 0.95rem; cursor: pointer;
+            transition: background-color var(--transition); white-space: nowrap;
+        }
+        .developer-item a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.75rem; width: 100%;}
+        .chat-history-item:hover, .developer-item:hover { background-color: var(--bg-light); }
+        body.dark-mode .chat-history-item:hover, body.dark-mode .developer-item:hover { background-color: var(--border-dark); }
+        .chat-history-item.active { background-color: var(--primary-light); color: var(--primary-dark); font-weight: 600; }
+        body.dark-mode .chat-history-item.active { background-color: hsl(var(--primary-hue), 20%, 25%); color: var(--text-light); }
+        .chat-history-item.active i { color: var(--primary); }
+        
+        .icon-btn {
+            background: none; border: none; cursor: pointer; font-size: 1.5rem;
+            color: #6b7280; transition: var(--transition);
+        }
+        .icon-btn:hover { color: var(--primary); }
+        
+        .chat-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header {
+            display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light);
+        }
+        body.dark-mode .chat-header { border-bottom-color: var(--border-dark); }
+        .header-left { display: flex; align-items: center; gap: 0.5rem; }
+        .sidebar-toggle-btn, .menu-btn { display: none; }
+        
+        .service-dropdown { position: relative; }
+        .current-service-btn {
+            background: none; border: none; font-size: 1.25rem; font-weight: 600;
+            display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+            padding: 0.5rem; border-radius: 0.5rem; transition: var(--transition);
+        }
+        .current-service-btn:hover { background-color: var(--bg-light); }
+        body.dark-mode .current-service-btn { color: var(--text-light); }
+        body.dark-mode .current-service-btn:hover { background-color: var(--border-dark); }
+        .dropdown-menu {
+            position: absolute; top: 110%; left: 50%; transform: translateX(-50%);
+            background-color: var(--surface-light); border: 1px solid var(--border-light);
+            border-radius: var(--border-radius); box-shadow: var(--shadow);
+            min-width: 200px; z-index: 10;
+            opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(10px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        body.dark-mode .dropdown-menu { background-color: var(--surface-dark); border-color: var(--border-dark); }
+        .dropdown-menu.open { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        .dropdown-item {
+            display: flex; width: 100%; align-items: center; gap: 0.75rem;
+            padding: 0.75rem 1rem; background: none; border: none;
+            font-size: 1rem; text-align: right; cursor: pointer;
+        }
+        html[dir="ltr"] .dropdown-item { text-align: left; }
+        .dropdown-item:hover { background-color: var(--bg-light); }
+        body.dark-mode .dropdown-item:hover { background-color: var(--border-dark); }
+
+        .header-actions { display: flex; gap: 0.5rem; }
+
+        .chat-messages { flex-grow: 1; padding: 1.5rem 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
+        .message { display: flex; gap: 0.75rem; max-width: 90%; animation: message-fade-in 0.3s ease-in-out; }
+        .message-user { align-self: flex-end; flex-direction: row-reverse; }
+        .message-ai { align-self: flex-start; }
+        .avatar {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            display: grid; place-items: center; font-size: 1.25rem; color: white; margin-top: 5px;
+        }
+        .user-avatar { background: linear-gradient(45deg, #4f46e5, #7c3aed); }
+        .ai-avatar { background: var(--primary); }
+        .message-content { padding: 0.75rem 1rem; border-radius: var(--border-radius); line-height: 1.6; word-wrap: break-word; }
+        .message-content img { max-width: 100%; border-radius: var(--border-radius); margin-top: 0.5rem; }
+        .message-user .message-content { background-color: var(--primary); color: white; border-top-right-radius: 0.25rem; }
+        .message-ai .message-content { background-color: var(--surface-light); border: 1px solid var(--border-light); border-top-left-radius: 0.25rem; }
+        body.dark-mode .message-ai .message-content { background-color: var(--surface-dark); border-color: var(--border-dark); }
+        .message.error .message-content { background-color: #fee2e2; color: #b91c1c; font-weight: 500;}
+        body.dark-mode .message.error .message-content { background-color: #3f1a1a; color: #fca5a5; }
+        .message.typing .message-content { color: #6b7280; font-style: italic; }
+        body.dark-mode .message.typing .message-content { color: #9ca3af; }
+        
+        .audio-player-wrapper { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        audio { flex-grow: 1; min-width: 200px; }
+        audio::-webkit-media-controls-panel { background-color: var(--primary-light); }
+        body.dark-mode audio::-webkit-media-controls-panel { background-color: hsl(var(--primary-hue), 20%, 25%); }
+
+        .input-area { padding: 1rem; border-top: 1px solid var(--border-light); background: var(--surface-light); }
+        body.dark-mode .input-area { border-top-color: var(--border-dark); background: var(--surface-dark); }
+        .input-wrapper { display: flex; align-items: center; gap: 0.75rem; }
+        .chat-input {
+            flex-grow: 1; padding: 0.75rem 1rem; border: 1px solid var(--border-light);
+            border-radius: 20px; font-size: 1rem; resize: none; min-height: 44px;
+            background-color: var(--bg-light); color: var(--text-dark); transition: var(--transition);
+        }
+        body.dark-mode .chat-input { background-color: var(--bg-dark); border-color: var(--border-dark); color: var(--text-light); }
+        .chat-input:focus { outline: none; border-color: var(--primary); }
+        .send-btn {
+            background: var(--primary); color: white; border: none; border-radius: 50%;
+            width: 44px; height: 44px; display: grid; place-items: center; flex-shrink: 0;
+            cursor: pointer; font-size: 1.25rem; transition: var(--transition);
+        }
+        .send-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed; top: 0; right: 0; height: 100%;
+                transform: translateX(100%); box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            }
+            html[dir="ltr"] .sidebar {
+                right: auto; left: 0; transform: translateX(-100%);
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-toggle-btn { display: none; }
+            .menu-btn { display: grid; }
+            .overlay {
+                position: fixed; inset: 0; background-color: rgba(0,0,0,0.4);
+                z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s;
+            }
+            .overlay.active { opacity: 1; visibility: visible; }
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(8px); display: grid; place-items: center; z-index: 1002;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background-color: var(--surface-light); border-radius: var(--border-radius);
+            width: 90%; max-width: 500px; box-shadow: var(--shadow);
+            transform: scale(0.95); transition: transform 0.3s;
+            display: flex; flex-direction: column; max-height: 90vh;
+        }
+        .modal-overlay.active .modal { transform: scale(1); }
+        body.dark-mode .modal { background-color: var(--surface-dark); }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+        body.dark-mode .modal-header { border-bottom-color: var(--border-dark); }
+        .modal-title { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; }
+        .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
+        .settings-section-title { font-weight: 600; margin-bottom: 1rem; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; }
+        .setting-item > label { font-size: 1rem; }
+        select, input[type="color"] {
+            padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border-light);
+            background-color: var(--surface-light); min-width: 150px;
+        }
+        input[type="color"] { height: 40px; padding: 0.25rem; }
+        body.dark-mode select, body.dark-mode input[type="color"] { background-color: var(--dark-gray); border-color: var(--border-dark); color: var(--text-light); }
+        .modal-footer { padding: 1.5rem; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-light); margin-top: auto; }
+        body.dark-mode .modal-footer { border-top-color: var(--border-dark); }
+        .save-btn {
+            background: var(--primary); color: white; border: none;
+            border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 500; cursor: pointer;
+        }
+        .hidden { display: none !important; }
+        @keyframes message-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"><i class="ph-duotone ph-brain"></i></div>
+                <h1 class="logo-title" data-translate-key="appTitle">المساعد الذكي</h1>
+            </div>
+            <button class="new-chat-btn"><i class="ph ph-plus"></i><span data-translate-key="newChat">محادثة جديدة</span></button>
+            <div class="history-container">
+                <div>
+                    <h3 class="history-title" data-translate-key="history">الأرشيف</h3>
+                    <ul class="chat-history">
+                        <li class="chat-history-item active">
+                            <i class="ph ph-chat-teardrop-dots"></i><span data-translate-key="currentChat">النقاش الحالي</span>
+                        </li>
+                    </ul>
+                </div>
+                <div style="margin-top: auto;">
+                     <h3 class="history-title" data-translate-key="developers">المطورون</h3>
+                     <ul class="developers-list">
+                        <li class="developer-item">
+                           <a href="https://www.facebook.com/youcef.youcef.209664/?locale=ar_AR" target="_blank" rel="noopener noreferrer">
+                                <i class="ph ph-user-circle"></i><span>YOUCEF HD</span>
+                           </a>
+                        </li>
+                        <li class="developer-item" style="cursor: default;">
+                           <i class="ph ph-user-circle"></i><span>mouad معاذ</span>
+                        </li>
+                     </ul>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="chat-header">
+                <div class="header-left">
+                    <button class="icon-btn sidebar-toggle-btn" id="sidebar-toggle-btn"><i class="ph ph-sidebar-simple"></i></button>
+                    <button class="icon-btn menu-btn" id="menu-btn"><i class="ph ph-list"></i></button>
+                </div>
+                <div class="service-dropdown" id="service-dropdown">
+                    <button class="current-service-btn">
+                        <span id="current-service-name">Gemini</span>
+                        <i class="ph ph-caret-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item" data-service="gemini">Gemini</button>
+                        <button class="dropdown-item" data-service="image" data-translate-key="imageService">صناعة الصور</button>
+                        <button class="dropdown-item" data-service="voice" data-translate-key="voiceService">تحويل النص لصوت</button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" id="settings-btn" title="الإعدادات"><i class="ph ph-gear"></i></button>
+                    <button class="icon-btn" id="theme-toggle" title="تبديل المظهر"><i class="ph ph-moon"></i></button>
+                </div>
+            </header>
+            <div class="chat-container">
+                <div class="chat-messages"></div>
+                <div class="input-area">
+                    <div class="input-wrapper" id="input-wrapper">
+                        <!-- Input area dynamically updated by JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="ph ph-gear"></i><span data-translate-key="settings">الإعدادات</span></h3>
+                <button class="icon-btn modal-close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <h4 class="settings-section-title" data-translate-key="language">اللغة</h4>
+                <div class="setting-item">
+                    <label for="language-select" data-translate-key="interfaceLanguage">لغة الواجهة</label>
+                    <select id="language-select">
+                        <option value="ar">العربية</option><option value="en">English</option>
+                        <option value="fr">Français</option><option value="es">Español</option>
+                    </select>
+                </div>
+                <h4 class="settings-section-title" data-translate-key="themeColor">لون المظهر</h4>
+                <div class="setting-item">
+                    <label for="color-picker" data-translate-key="primaryColor">اللون الأساسي</label>
+                    <input type="color" id="color-picker">
+                </div>
+                <div id="audio-settings" class="hidden">
+                    <h4 class="settings-section-title" data-translate-key="audioSettings">إعدادات الصوت</h4>
+                    <div class="setting-item">
+                        <label for="audio-voice-select" data-translate-key="voice">الصوت</label>
+                        <select id="audio-voice-select">
+                            <option value="alloy">Alloy</option><option value="echo">Echo</option>
+                            <option value="fable">Fable</option><option value="onyx">Onyx</option>
+                            <option value="nova">Nova</option><option value="shimmer">Shimmer</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="save-btn" data-translate-key="saveChanges">حفظ</button>
+            </div>
+        </div>
+    </div>
+    
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Element Selectors ---
+        const getEl = (id) => document.getElementById(id);
+        const queryEl = (sel) => document.querySelector(sel);
+        
+        const appLayout = getEl('app-layout');
+        const inputWrapper = getEl('input-wrapper');
+        const chatMessages = queryEl('.chat-messages');
+        const newChatBtn = queryEl('.new-chat-btn');
+        const settingsBtn = getEl('settings-btn');
+        const themeToggle = getEl('theme-toggle');
+        const sidebarToggleBtn = getEl('sidebar-toggle-btn');
+        const settingsModal = getEl('settings-modal');
+        const closeModalBtn = queryEl('#settings-modal .modal-close');
+        const languageSelect = getEl('language-select');
+        const colorPicker = getEl('color-picker');
+        const saveSettingsBtn = queryEl('#settings-modal .save-btn');
+        const audioSettingsDiv = getEl('audio-settings');
+        const audioVoiceSelect = getEl('audio-voice-select');
+        const menuBtn = getEl('menu-btn');
+        const sidebar = getEl('sidebar');
+        const overlay = getEl('overlay');
+        const serviceDropdown = getEl('service-dropdown');
+        const currentServiceSpan = getEl('current-service-name');
+        const dropdownMenu = queryEl('.dropdown-menu');
+
+        // --- State Management ---
+        let messageHistory = [];
+        let currentSettings = {};
+
+        // --- Localization Strings ---
+        const uiStrings = {
+            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", imageService: "صناعة الصور", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت..." },
+            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", imageService: "Image Generation", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderVoice: "Type text to convert to speech..." },
+        };
+        
+        // --- Initialization ---
+        const init = () => {
+            setupEventListeners();
+            loadSettings();
+        };
+
+        // --- Event Listeners Setup ---
+        const setupEventListeners = () => {
+            inputWrapper.addEventListener('click', (e) => {
+                if (e.target.closest('.send-btn')) handleSendMessage();
+            });
+            inputWrapper.addEventListener('keydown', (e) => {
+                if (e.target.classList.contains('chat-input') && e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            });
+
+            themeToggle.addEventListener('click', () => { currentSettings.darkMode = !document.body.classList.contains('dark-mode'); applyAndSaveSettings(); });
+            sidebarToggleBtn.addEventListener('click', () => { currentSettings.sidebarCollapsed = !appLayout.classList.contains('sidebar-collapsed'); applyAndSaveSettings(); });
+            newChatBtn.addEventListener('click', () => startNewChat(false));
+            settingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
+            closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('active'));
+            saveSettingsBtn.addEventListener('click', saveAndApplyAllSettings);
+            menuBtn.addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('active'); });
+            overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('active'); });
+            
+            serviceDropdown.addEventListener('click', (e) => {
+                if (e.target.closest('.current-service-btn')) { dropdownMenu.classList.toggle('open'); }
+            });
+            dropdownMenu.addEventListener('click', (e) => {
+                if (e.target.classList.contains('dropdown-item') && !e.target.disabled) {
+                    setActiveService(e.target.dataset.service);
+                    dropdownMenu.classList.remove('open');
+                }
+            });
+            document.addEventListener('click', (e) => { if (!serviceDropdown.contains(e.target)) { dropdownMenu.classList.remove('open'); } });
+        };
+        
+        // --- Settings Management ---
+        const saveAndApplyAllSettings = () => {
+            currentSettings.language = languageSelect.value;
+            currentSettings.primaryColor = colorPicker.value;
+            currentSettings.audioVoice = audioVoiceSelect.value;
+            applyAndSaveSettings();
+            settingsModal.classList.remove('active');
+        };
+
+        const loadSettings = () => {
+            const saved = JSON.parse(localStorage.getItem('aiAssistantSettings'));
+            currentSettings = { darkMode: false, language: 'ar', primaryColor: '#4f46e5', activeService: 'gemini', audioVoice: 'alloy', sidebarCollapsed: false, ...saved };
+            // Ensure activeService is valid, otherwise default to 'gemini'
+            if (!['gemini', 'image', 'voice'].includes(currentSettings.activeService)) {
+                currentSettings.activeService = 'gemini';
+            }
+            applySettings();
+            if (chatMessages.children.length === 0) {
+                addMessage('ai', uiStrings[currentSettings.language].welcomeMsg);
+            }
+        };
+
+        const applyAndSaveSettings = () => {
+            applySettings();
+            localStorage.setItem('aiAssistantSettings', JSON.stringify(currentSettings));
+        };
+        
+        const applySettings = () => {
+            document.body.classList.toggle('dark-mode', currentSettings.darkMode);
+            appLayout.classList.toggle('sidebar-collapsed', currentSettings.sidebarCollapsed);
+            themeToggle.querySelector('i').className = currentSettings.darkMode ? 'ph ph-sun' : 'ph ph-moon';
+            
+            const [h, s, l] = hexToHsl(currentSettings.primaryColor);
+            document.documentElement.style.setProperty('--primary-hue', h);
+            document.documentElement.style.setProperty('--primary-saturation', `${s}%`);
+            document.documentElement.style.setProperty('--primary-lightness', `${l}%`);
+            
+            languageSelect.value = currentSettings.language;
+            colorPicker.value = currentSettings.primaryColor;
+            audioVoiceSelect.value = currentSettings.audioVoice;
+            const serviceEl = queryEl(`.dropdown-item[data-service="${currentSettings.activeService}"]`);
+            if (serviceEl) {
+                currentServiceSpan.textContent = serviceEl.textContent;
+            }
+            audioSettingsDiv.classList.toggle('hidden', currentSettings.activeService !== 'voice');
+            applyLanguage(currentSettings.language);
+        };
+        
+        // --- Language and UI Updates ---
+        const applyLanguage = (lang) => {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            document.querySelectorAll('[data-translate-key]').forEach(el => {
+                const key = el.dataset.translateKey;
+                if (uiStrings[lang] && uiStrings[lang][key]) {
+                    const value = uiStrings[lang][key];
+                    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+                         el.placeholder = value;
+                    } else {
+                         el.textContent = value;
+                    }
+                }
+            });
+            updateInputArea();
+        };
+
+        const updateInputArea = () => {
+            const lang = currentSettings.language;
+            let placeholderKey = 'placeholderText';
+            if (currentSettings.activeService === 'image') placeholderKey = 'placeholderImage';
+            if (currentSettings.activeService === 'voice') placeholderKey = 'placeholderVoice';
+
+            const html = `
+                <textarea class="chat-input" placeholder="${uiStrings[lang][placeholderKey]}" rows="1"></textarea>
+                <button class="send-btn"><i class="ph ph-paper-plane-tilt"></i></button>
+            `;
+            inputWrapper.innerHTML = html;
+        };
+
+        // --- Core Chat Logic ---
+        const handleSendMessage = async () => {
+            const inputEl = queryEl('.chat-input');
+            const sendBtn = queryEl('.send-btn');
+            const userMessage = inputEl.value.trim();
+            if (!userMessage) return;
+
+            addMessage('user', userMessage);
+            inputEl.value = '';
+            sendBtn.disabled = true;
+
+            const service = currentSettings.activeService;
+            
+            try {
+                if (service === 'gemini') {
+                    await handleChatService(userMessage);
+                } else if (service === 'image') {
+                    handleImageService(userMessage);
+                } else if (service === 'voice') {
+                    handleVoiceService(userMessage);
+                }
+            } catch (error) {
+                 // Errors are handled within each service function
+                 console.error("Error during message handling:", error);
+            } finally {
+                sendBtn.disabled = false;
+                inputEl.focus();
+            }
+        };
+
+        const handleChatService = async (prompt) => {
+            messageHistory.push({ role: 'user', parts: [{ text: prompt }] });
+            const typingIndicator = addMessage('typing');
+
+            try {
+                const aiMessage = await sendToGemini(messageHistory);
+                typingIndicator.remove();
+                addMessage('ai', aiMessage);
+                messageHistory.push({ role: 'model', parts: [{ text: aiMessage }] });
+            } catch (error) {
+                console.error(`Error with Gemini:`, error);
+                typingIndicator.remove();
+                addMessage('error', `${uiStrings[currentSettings.language].errorMsg} ${error.message}`);
+                messageHistory.pop(); // Remove user message from history on failure
+            }
+        };
+        
+        const handleImageService = (prompt) => {
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+            addMessage('image', url);
+        };
+
+        const handleVoiceService = (text) => {
+            const voice = currentSettings.audioVoice;
+            const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?model=openai-audio&voice=${voice}`;
+            addMessage('audio', url);
+        };
+
+        // --- API Call Functions ---
+        const sendToGemini = async (history) => {
+            const apiKey = ""; // Canvas provides this automatically.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const payload = { contents: history };
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                const errorMessage = result.error?.message || uiStrings[currentSettings.language].apiError;
+                console.error("Gemini API Error:", result);
+                throw new Error(errorMessage);
+            }
+            return result.candidates[0].content.parts[0].text;
+        };
+        
+        // --- Message Display and Chat Management ---
+        const addMessage = (sender, content = '') => {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message message-${sender}`;
+            let contentHTML;
+            
+            if (sender === 'typing') {
+                content = uiStrings[currentSettings.language].typing;
+            }
+
+            if (sender === 'image') {
+                contentHTML = `<img src="${content}" alt="Generated image" onerror="this.parentElement.innerHTML = 'Image failed to load.'">`;
+            } else if (sender === 'audio') {
+                contentHTML = `
+                    <div class="audio-player-wrapper">
+                        <audio controls autoplay src="${content}"></audio>
+                        <a href="${content}" download="ai-voice.mp3" class="icon-btn" title="${uiStrings[currentSettings.language].download}">
+                            <i class="ph ph-download-simple"></i>
+                        </a>
+                    </div>`;
+            } else {
+                 // Sanitize and format text content
+                 contentHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            }
+            
+            const avatarIcon = sender === 'user' ? 'ph-user' : 'ph-brain';
+            const avatarClass = sender === 'user' ? 'user-avatar' : 'ai-avatar';
+            messageEl.innerHTML = `<div class="avatar ${avatarClass}"><i class="ph ${avatarIcon}"></i></div><div class="message-content">${contentHTML}</div>`;
+            
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageEl;
+        };
+
+        const setActiveService = (service) => {
+            currentSettings.activeService = service;
+            startNewChat(true); // Start a new chat silently
+            applyAndSaveSettings();
+        };
+
+        const startNewChat = (silent = false) => {
+            chatMessages.innerHTML = '';
+            messageHistory = [];
+            addMessage('ai', uiStrings[currentSettings.language].newChatWelcome);
+        };
+
+        // --- Utility Functions ---
+        const hexToHsl = (H) => {
+            let r = 0, g = 0, b = 0;
+            if (H.length == 4) { r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3];
+            } else if (H.length == 7) { r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6]; }
+            r /= 255; g /= 255; b /= 255;
+            let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin, h = 0, s = 0, l = 0;
+            if (delta == 0) h = 0;
+            else if (cmax == r) h = ((g - b) / delta) % 6;
+            else if (cmax == g) h = (b - r) / delta + 2;
+            else h = (r - g) / delta + 4;
+            h = Math.round(h * 60);
+            if (h < 0) h += 360;
+            l = (cmax + cmin) / 2;
+            s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+            s = +(s * 100).toFixed(1);
+            l = +(l * 100).toFixed(1);
+            return [h, s, l];
+        };
+
+        // --- Run Application ---
+        init();
+    });
+</script>
+</body>
+</html>
