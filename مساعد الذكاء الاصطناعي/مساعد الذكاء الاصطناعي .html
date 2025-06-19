@@ -135,21 +135,21 @@
         .chat-messages { flex-grow: 1; padding: 1.5rem 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
         .message { display: flex; gap: 0.75rem; max-width: 90%; animation: message-fade-in 0.3s ease-in-out; }
         .message-user { align-self: flex-end; flex-direction: row-reverse; }
-        .message-ai { align-self: flex-start; }
+        .message-ai { align-self: flex-start; max-width: 100%; width: 100%;}
         .avatar {
             width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
             display: grid; place-items: center; font-size: 1.25rem; color: white; margin-top: 5px;
         }
         .user-avatar { background: linear-gradient(45deg, #4f46e5, #7c3aed); }
         .ai-avatar { background: var(--primary); }
-        .message-content { padding: 0.75rem 1rem; border-radius: var(--border-radius); line-height: 1.6; word-wrap: break-word; }
+        .message-content { width: 100%; padding: 0.75rem 1rem; border-radius: var(--border-radius); line-height: 1.6; word-wrap: break-word; }
         .message-content img { max-width: 100%; border-radius: var(--border-radius); margin-top: 0.5rem; }
-        .message-user .message-content { background-color: var(--primary); color: white; border-top-right-radius: 0.25rem; }
+        .message-user .message-content { background-color: var(--primary); color: white; border-top-right-radius: 0.25rem; width: auto;}
         .message-ai .message-content { background-color: var(--surface-light); border: 1px solid var(--border-light); border-top-left-radius: 0.25rem; }
         body.dark-mode .message-ai .message-content { background-color: var(--surface-dark); border-color: var(--border-dark); }
-        .message.error .message-content { background-color: #fee2e2; color: #b91c1c; font-weight: 500;}
+        .message.error .message-content { background-color: #fee2e2; color: #b91c1c; font-weight: 500; width: auto;}
         body.dark-mode .message.error .message-content { background-color: #3f1a1a; color: #fca5a5; }
-        .message.typing .message-content { color: #6b7280; font-style: italic; }
+        .message.typing .message-content { color: #6b7280; font-style: italic; width: auto; }
         body.dark-mode .message.typing .message-content { color: #9ca3af; }
         
         .audio-player-wrapper { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
@@ -157,22 +157,30 @@
         audio::-webkit-media-controls-panel { background-color: var(--primary-light); }
         body.dark-mode audio::-webkit-media-controls-panel { background-color: hsl(var(--primary-hue), 20%, 25%); }
 
-        .website-code-wrapper { position: relative; }
-        .website-code-wrapper pre {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
+        .website-wrapper { border-radius: var(--border-radius); overflow: hidden; border: 1px solid var(--border-light); }
+        body.dark-mode .website-wrapper { border-color: var(--border-dark); }
+        .website-tabs { display: flex; background-color: var(--bg-light); }
+        body.dark-mode .website-tabs { background-color: var(--bg-dark); }
+        .website-tab { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; }
+        .website-tab.active { border-color: var(--primary); font-weight: 600; }
+        .website-content { display: none; }
+        .website-content.active { display: block; }
+        .website-preview iframe { width: 100%; height: 500px; border: none; }
+        .website-code { position: relative; }
+        .website-code pre {
+            background-color: #111827;
+            color: #f3f4f6;
             padding: 1rem;
-            border-radius: var(--border-radius);
             white-space: pre-wrap;
             word-wrap: break-word;
-            max-height: 400px;
+            max-height: 500px;
             overflow: auto;
+            margin: 0;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
         }
-        body.dark-mode .website-code-wrapper pre { background-color: #000; }
         .copy-code-btn {
             position: absolute;
             top: 0.5rem;
-            left: 0.5rem; /* Adjusted for LTR/RTL in JS */
             background: var(--surface-dark);
             color: var(--text-light);
             border: 1px solid var(--border-dark);
@@ -181,7 +189,8 @@
             cursor: pointer;
             font-size: 0.8rem;
         }
-
+        html[dir="rtl"] .copy-code-btn { left: 0.5rem; }
+        html[dir="ltr"] .copy-code-btn { right: 0.5rem; }
 
         .input-area { padding: 1rem; border-top: 1px solid var(--border-light); background: var(--surface-light); }
         body.dark-mode .input-area { border-top-color: var(--border-dark); background: var(--surface-dark); }
@@ -402,8 +411,8 @@
 
         // --- Localization Strings ---
         const uiStrings = {
-            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", websiteService: "إنشاء موقع", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", analyzingRequest: "جاري تحليل طلبك...", buildingWebsite: "جاري بناء الموقع...", copyCode: "نسخ الكود", codeCopied: "تم النسخ!", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderWebsite: "صف الموقع الذي تريده...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
-            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", websiteService: "Website Builder", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", analyzingRequest: "Analyzing your request...", buildingWebsite: "Building your website...", copyCode: "Copy Code", codeCopied: "Copied!", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderWebsite: "Describe the website you want...", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
+            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", websiteService: "إنشاء موقع", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", analyzingRequest: "جاري تحليل طلبك...", buildingWebsite: "جاري بناء الموقع...", enhancingIdea: "جاري توسيع الفكرة...", preview: "معاينة", code: "الكود", copyCode: "نسخ الكود", codeCopied: "تم النسخ!", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderWebsite: "صف فكرة موقعك (مثال: متجر بسيط للقهوة)", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
+            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", websiteService: "Website Builder", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", analyzingRequest: "Analyzing your request...", buildingWebsite: "Building your website...", enhancingIdea: "Enhancing the idea...", preview: "Preview", code: "Code", copyCode: "Copy Code", codeCopied: "Copied!", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderWebsite: "Describe your website idea (e.g., a simple coffee shop)", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
         };
         
         // --- Initialization ---
@@ -619,13 +628,22 @@
             const strings = uiStrings[currentSettings.language] || uiStrings.en;
             if (!currentSettings.geminiApiKey) throw new Error(strings.apiKeyMissing);
 
-            const statusIndicator = addMessage('typing', strings.analyzingRequest);
+            let statusIndicator = addMessage('typing', strings.analyzingRequest);
+            let finalPrompt = userPrompt;
 
             try {
-                const websiteGenerationPrompt = `You are an expert web developer specializing in creating beautiful, modern, and responsive single-page websites using HTML and Tailwind CSS. A user will provide a description of the website they want. Your task is to generate a complete, single HTML file that includes the Tailwind CSS CDN link and all necessary HTML structure, content, and inline CSS classes. The design should be clean, professional, and mobile-first. Do not include any explanation, just the raw HTML code starting with <!DOCTYPE html>. User's request: "${userPrompt}"`;
+                // Enhance the prompt if it's too simple
+                if (userPrompt.split(' ').length < 10) {
+                     statusIndicator.querySelector('.message-content').textContent = strings.enhancingIdea;
+                    const enhancementPrompt = `You are a creative director. A user has a simple idea for a website: "${userPrompt}". Expand this into a more detailed, single-paragraph concept for a modern, visually appealing website. Describe the key sections, the overall vibe, and the target audience. Output only the paragraph.`;
+                    finalPrompt = await sendToGemini([{ role: 'user', parts: [{ text: enhancementPrompt }] }]);
+                }
+                
+                statusIndicator.querySelector('.message-content').textContent = strings.buildingWebsite;
+
+                const websiteGenerationPrompt = `You are an expert web developer specializing in creating beautiful, modern, and responsive single-page websites using HTML and Tailwind CSS. A user will provide a description of the website they want. Your task is to generate a complete, single HTML file that includes the Tailwind CSS CDN link and all necessary HTML structure, content, and inline CSS classes. The design should be clean, professional, and mobile-first. Use high-quality placeholder images from https://placehold.co where appropriate. Do not include any explanation, just the raw HTML code starting with <!DOCTYPE html>. User's request: "${finalPrompt}"`;
 
                 const websiteHistory = [{ role: 'user', parts: [{ text: websiteGenerationPrompt }] }];
-                statusIndicator.querySelector('.message-content').textContent = strings.buildingWebsite;
                 const websiteHtml = await sendToGemini(websiteHistory);
                 
                 statusIndicator.remove();
@@ -689,24 +707,37 @@
                         </a>
                     </div>`;
             } else if (sender === 'website') {
-                const escapedCode = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                const uniqueId = `code-${Date.now()}`;
+                const uniqueId = `code-block-${Date.now()}`;
                 contentHTML = `
-                    <div class="website-code-wrapper">
-                         <button class="copy-code-btn" data-target="${uniqueId}">${strings.copyCode}</button>
-                         <pre><code id="${uniqueId}">${escapedCode}</code></pre>
+                    <div class="website-wrapper" id="${uniqueId}">
+                        <div class="website-tabs">
+                            <div class="website-tab active" data-tab="preview">${strings.preview}</div>
+                            <div class="website-tab" data-tab="code">${strings.code}</div>
+                        </div>
+                        <div class="website-content website-preview active" data-content="preview">
+                            <iframe srcdoc="${content.replace(/"/g, '&quot;')}" sandbox="allow-scripts allow-same-origin"></iframe>
+                        </div>
+                        <div class="website-content website-code" data-content="code">
+                            <button class="copy-code-btn">${strings.copyCode}</button>
+                            <pre><code>${content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                        </div>
                     </div>`;
 
-                // Add event listener for the copy button
                 setTimeout(() => {
-                    const copyBtn = messageEl.querySelector('.copy-code-btn');
-                    if(document.documentElement.dir === 'rtl') {
-                        copyBtn.style.left = 'auto';
-                        copyBtn.style.right = '0.5rem';
-                    } else {
-                        copyBtn.style.left = '0.5rem';
-                        copyBtn.style.right = 'auto';
-                    }
+                    const wrapper = getEl(uniqueId);
+                    const tabs = wrapper.querySelectorAll('.website-tab');
+                    const contents = wrapper.querySelectorAll('.website-content');
+                    const copyBtn = wrapper.querySelector('.copy-code-btn');
+
+                    tabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            tabs.forEach(t => t.classList.remove('active'));
+                            contents.forEach(c => c.classList.remove('active'));
+                            tab.classList.add('active');
+                            wrapper.querySelector(`[data-content="${tab.dataset.tab}"]`).classList.add('active');
+                        });
+                    });
+
                     copyBtn.addEventListener('click', () => {
                         const codeToCopy = content;
                         const textarea = document.createElement('textarea');
@@ -719,6 +750,7 @@
                         setTimeout(() => { copyBtn.textContent = strings.copyCode; }, 2000);
                     });
                 }, 0);
+
             } else {
                  contentHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
             }
