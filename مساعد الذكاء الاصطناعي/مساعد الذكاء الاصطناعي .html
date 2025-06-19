@@ -375,8 +375,8 @@
 
         // --- Localization Strings ---
         const uiStrings = {
-            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
-            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
+            ar: { appTitle: "المساعد الذكي", newChat: "محادثة جديدة", history: "الأرشيف", currentChat: "النقاش الحالي", settings: "الإعدادات", language: "اللغة", interfaceLanguage: "لغة الواجهة", themeColor: "لون المظهر", primaryColor: "اللون الأساسي", saveChanges: "حفظ", welcomeMsg: "أهلاً بك. اختر خدمة للبدء.", newChatWelcome: "أهلاً بك في محادثة جديدة! كيف يمكنني مساعدتك اليوم؟", errorMsg: "عذراً، حدث خطأ:", apiError: "لم أتلق رداً صالحاً من الخادم.", apiKeyMissing: "مفتاح Gemini API غير موجود. يرجى إضافته في الإعدادات.", imageService: "صناعة الصور", voiceService: "تحويل النص لصوت", audioSettings: "إعدادات الصوت", voice: "الصوت", download: "تحميل", developers: "المطورون", typing: "يقوم الذكاء الاصطناعي بالكتابة...", generatingKeywords: "جاري تحسين الوصف...", generatingImage: "جاري إنشاء الصورة...", placeholderText: "اسأل أي شيء...", placeholderImage: "اكتب وصفاً للصورة...", placeholderVoice: "اكتب نصاً لتحويله إلى صوت...", geminiSettings: "إعدادات Gemini", geminiApiKey: "مفتاح Gemini API", generalSettings: "إعدادات عامة" },
+            en: { appTitle: "Smart Assistant", newChat: "New Chat", history: "History", currentChat: "Current Chat", settings: "Settings", language: "Language", interfaceLanguage: "Interface Language", themeColor: "Theme Color", primaryColor: "Primary Color", saveChanges: "Save", welcomeMsg: "Welcome. Select a service to begin.", newChatWelcome: "Welcome to a new chat! How can I help you today?", errorMsg: "Sorry, an error occurred:", apiError: "Invalid response received from the server.", apiKeyMissing: "Gemini API key is missing. Please add it in the settings.", imageService: "Image Generation", voiceService: "Text-to-Speech", audioSettings: "Audio Settings", voice: "Voice", download: "Download", developers: "Developers", typing: "AI is typing...", generatingKeywords: "Optimizing prompt...", generatingImage: "Generating image...", placeholderText: "Ask anything...", placeholderImage: "Describe an image...", placeholderVoice: "Type text to convert to speech...", geminiSettings: "Gemini Settings", geminiApiKey: "Gemini API Key", generalSettings: "General Settings" },
         };
         
         // --- Initialization ---
@@ -430,7 +430,6 @@
 
         const loadSettings = () => {
             const saved = JSON.parse(localStorage.getItem('aiAssistantSettings'));
-            // Set the default API key here
             const defaultSettings = {
                 darkMode: false,
                 language: 'ar',
@@ -528,7 +527,7 @@
                 if (service === 'gemini') {
                     await handleChatService(userMessage);
                 } else if (service === 'image') {
-                    handleImageService(userMessage);
+                    await handleImageService(userMessage);
                 } else if (service === 'voice') {
                     handleVoiceService(userMessage);
                 }
@@ -563,9 +562,31 @@
             }
         };
         
-        const handleImageService = (prompt) => {
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-            addMessage('image', url);
+        const handleImageService = async (userPrompt) => {
+            const strings = uiStrings[currentSettings.language] || uiStrings.en;
+            if (!currentSettings.geminiApiKey) {
+                throw new Error(strings.apiKeyMissing);
+            }
+            
+            const statusIndicator = addMessage('typing', strings.generatingKeywords);
+
+            try {
+                const keywordGenerationPrompt = `You are an expert in creating prompts for image generation AIs. A user will provide a description. Your task is to translate it to English and then expand it into a detailed, comma-separated list of keywords focusing on visual elements. Only output the final list of keywords. Do not add any other text or explanation. Here is the description: "${userPrompt}"`;
+                
+                const keywordHistory = [{ role: 'user', parts: [{ text: keywordGenerationPrompt }] }];
+                const keywords = await sendToGemini(keywordHistory);
+
+                statusIndicator.querySelector('.message-content').textContent = strings.generatingImage;
+                
+                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(keywords)}`;
+                addMessage('image', url);
+                statusIndicator.remove();
+
+            } catch (error) {
+                console.error('Error in image generation pipeline:', error);
+                statusIndicator.remove();
+                throw new Error(`${strings.errorMsg} ${error.message}`);
+            }
         };
 
         const handleVoiceService = (text) => {
@@ -608,10 +629,8 @@
             const strings = uiStrings[currentSettings.language] || uiStrings.en;
             
             if (sender === 'typing') {
-                content = strings.typing;
-            }
-
-            if (sender === 'image') {
+                 contentHTML = content || strings.typing;
+            } else if (sender === 'image') {
                 contentHTML = `<img src="${content}" alt="Generated image" onerror="this.parentElement.innerHTML = 'Image failed to load.'">`;
             } else if (sender === 'audio') {
                 contentHTML = `
